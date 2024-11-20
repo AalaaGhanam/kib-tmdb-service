@@ -6,6 +6,7 @@ import { Movie, MovieSchema } from './schemas/movie.schema';
 import { JwtStrategy } from 'src/users/jwt.strategy';
 import { User, UserSchema } from 'src/users/schemas/user.schema';
 import { JwtModule } from '@nestjs/jwt';
+import { RedisModule } from 'src/redis/redis.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { JwtModule } from '@nestjs/jwt';
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: process.env.JWT_EXPIRE_TIME },
     }),
+    RedisModule,
   ],
   controllers: [TmdbController],
   providers: [TmdbService, JwtStrategy],

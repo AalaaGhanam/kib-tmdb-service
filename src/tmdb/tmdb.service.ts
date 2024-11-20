@@ -5,10 +5,13 @@ import { Movie } from './schemas/movie.schema';
 import { CreateMovieDto } from './dto/create.dto';
 import { FilterMovieDto } from './dto/filter.dto';
 import { RateMovieDto } from './dto/rate.dto';
+import { RedisService } from 'src/redis/redis.service';
+import { REDIS_EXPIRE_TIME } from 'src/config/redis.config';
 
 @Injectable()
 export class TmdbService {
-  constructor(@InjectModel(Movie.name) private movieModel: Model<Movie>) {}
+  constructor(@InjectModel(Movie.name) private movieModel: Model<Movie>,
+  private redisService: RedisService,) {}
 
   async createMovie(createMovieDto: CreateMovieDto): Promise<Movie> {
     const movie = new this.movieModel(createMovieDto);
@@ -17,6 +20,12 @@ export class TmdbService {
 
   async findAllMovies(filterDto: FilterMovieDto): Promise<Movie[]> {
     const { genre, search, page, limit } = filterDto;
+    const cacheKey = `movies_cache-${genre}-${search}-${page}-${limit}`;
+    const cachedData = await this.redisService.get(cacheKey);
+    
+    if (cachedData) {
+      return JSON.parse(cachedData);
+    }
 
     const query = genre ? { genres: genre } : {};
     if (search) {
@@ -27,6 +36,9 @@ export class TmdbService {
       .find(query)
       .skip((page - 1) * limit)
       .limit(limit);
+
+    await this.redisService.set(cacheKey, JSON.stringify(movies), Number(REDIS_EXPIRE_TIME));
+
     return movies;
   }
 

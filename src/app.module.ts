@@ -9,7 +9,7 @@ import { TmdbModule } from './tmdb/tmdb.module';
 @Module({
   imports: [
     ConfigModule.forRoot(),
-    MongooseModule.forRoot(process.env.MONGO_URL),
+    MongooseModule.forRoot(process.env.MONGO_DB_URL),
     UsersModule,
     TmdbModule,
   ],
