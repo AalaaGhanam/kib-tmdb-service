@@ -17,7 +17,7 @@ import { UsersRepository } from './users.repository';
     PassportModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '1h' },
+      signOptions: { expiresIn: process.env.JWT_EXPIRE_TIME },
     }),
     ConfigModule.forRoot(),
   ],
