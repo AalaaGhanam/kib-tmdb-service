@@ -16,7 +16,7 @@ export class Movie extends Document {
   averageRating: number;
 
   @Prop({ type: [{ userId: String, rating: Number }] })
-  ratings: { userId: string; rating: number }[];  
+  ratings: { userId: string; rating: number }[];
 
   @Prop()
   overview: string;
@@ -36,6 +36,5 @@ export class Movie extends Document {
   @Prop()
   poster: string;
 }
-
 
 export const MovieSchema = SchemaFactory.createForClass(Movie);

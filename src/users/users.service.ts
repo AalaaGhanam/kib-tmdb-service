@@ -20,7 +20,6 @@ export class UsersService {
       password: hashedPassword,
     });
     return { message: 'User registered successfully' };
-
   }
 
   async login(loginUserDto: LoginUserDto) {
@@ -33,7 +32,7 @@ export class UsersService {
       throw new BadRequestException('Invalid email or password');
     }
     const payload = { username: user.username, userId: user._id };
-    const token= await this.jwtService.sign(payload);
+    const token = await this.jwtService.sign(payload);
     return {
       access_token: token,
     };

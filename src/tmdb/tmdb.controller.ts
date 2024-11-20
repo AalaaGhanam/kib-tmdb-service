@@ -1,10 +1,27 @@
-import { Controller, Get, Post, Body, Query, Param, Patch, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Query,
+  Param,
+  Patch,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { TmdbService } from './tmdb.service';
 import { CreateMovieDto } from './dto/create.dto';
 import { FilterMovieDto } from './dto/filter.dto';
 import { RateMovieDto } from './dto/rate.dto';
 import { AuthGuard } from '../common/guards/jwt-auth.guard';
-import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOkResponse,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { MovieResponseDto } from './dto/movie.response.dto';
 
 @ApiBearerAuth()
@@ -43,7 +60,11 @@ export class TmdbController {
   @ApiResponse({ type: MovieResponseDto })
   @UseGuards(AuthGuard)
   @Patch('/movies/:id/rate')
-  async rateMovie(@Param('id') id: string, @Body() rateMovieDto: RateMovieDto, @Request() req) {
+  async rateMovie(
+    @Param('id') id: string,
+    @Body() rateMovieDto: RateMovieDto,
+    @Request() req,
+  ) {
     return this.tmdbService.rateMovie(id, rateMovieDto, req.user.userId);
   }
 }

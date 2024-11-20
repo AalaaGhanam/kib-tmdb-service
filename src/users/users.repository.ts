@@ -14,7 +14,7 @@ export class UsersRepository {
     if (existingUser) {
       throw new BadRequestException('Email is already in use.');
     }
-    const user = new this.userModel({ username, email, password, });
+    const user = new this.userModel({ username, email, password });
     return await user.save();
   }
 

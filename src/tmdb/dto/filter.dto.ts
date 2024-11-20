@@ -1,20 +1,20 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty } from '@nestjs/swagger';
 
 export class FilterMovieDto {
   @ApiProperty({
-    required: false
+    required: false,
   })
   genre?: string;
   @ApiProperty({
-    required: false
+    required: false,
   })
   search?: string;
   @ApiProperty({
-    required: false
+    required: false,
   })
   page?: number = 1;
   @ApiProperty({
-    required: false
+    required: false,
   })
   limit?: number = 10;
 }

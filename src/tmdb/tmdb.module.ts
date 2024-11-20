@@ -12,8 +12,8 @@ import { JwtModule } from '@nestjs/jwt';
     MongooseModule.forFeature([{ name: Movie.name, schema: MovieSchema }]),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     JwtModule.register({
-        secret: process.env.JWT_SECRET,
-        signOptions: { expiresIn: process.env.JWT_EXPIRE_TIME },
+      secret: process.env.JWT_SECRET,
+      signOptions: { expiresIn: process.env.JWT_EXPIRE_TIME },
     }),
   ],
   controllers: [TmdbController],

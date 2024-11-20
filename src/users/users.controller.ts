@@ -1,9 +1,22 @@
-import { Controller, Post, Body, Get, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create.dto';
 import { LoginUserDto } from './dto/login.dto';
 import { AuthGuard } from '../common/guards/jwt-auth.guard';
-import { ApiBearerAuth, ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { UserResponseDto } from './dto/response.dto';
 
 @ApiBearerAuth()
@@ -18,16 +31,16 @@ export class UsersController {
     schema: {
       title: 'RegisterResponse',
       properties: {
-        message: {type: 'string'},
-      }
-    }
+        message: { type: 'string' },
+      },
+    },
   })
   @ApiBody({ type: CreateUserDto })
   @Post('register')
   async register(@Body() createUserDto: CreateUserDto) {
     return this.usersService.register(createUserDto);
   }
-  
+
   @ApiOperation({ summary: 'Login user' })
   @ApiBody({ type: LoginUserDto })
   @ApiOkResponse({
@@ -35,9 +48,9 @@ export class UsersController {
     schema: {
       title: 'LoginResponse',
       properties: {
-        access_token: {type: 'string'},
-      }
-    }
+        access_token: { type: 'string' },
+      },
+    },
   })
   @Post('login')
   async login(@Body() loginUserDto: LoginUserDto) {

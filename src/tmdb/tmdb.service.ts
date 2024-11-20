@@ -38,10 +38,16 @@ export class TmdbService {
     return movie;
   }
 
-  async rateMovie(id: string, rateDto: RateMovieDto, userId: string): Promise<Movie> {
+  async rateMovie(
+    id: string,
+    rateDto: RateMovieDto,
+    userId: string,
+  ): Promise<Movie> {
     const movie = await this.findOneMovie(id);
 
-    const existingRating = movie.ratings.find((rating) => rating.userId === userId);
+    const existingRating = movie.ratings.find(
+      (rating) => rating.userId === userId,
+    );
     if (existingRating) {
       existingRating.rating = rateDto.rating;
     } else {

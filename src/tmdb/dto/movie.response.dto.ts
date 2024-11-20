@@ -14,7 +14,7 @@ export class MovieResponseDto {
   averageRating: number;
 
   @ApiProperty()
-  ratings: { userId: string; rating: number }[];  
+  ratings: { userId: string; rating: number }[];
 
   @ApiProperty()
   overview: string;

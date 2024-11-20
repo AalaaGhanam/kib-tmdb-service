@@ -1,6 +1,6 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty } from '@nestjs/swagger';
 
 export class RateMovieDto {
   @ApiProperty()
-    rating: number;
-  }
+  rating: number;
+}
