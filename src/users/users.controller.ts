@@ -27,7 +27,10 @@ import { UserResponseDto } from './dto/response.dto';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @ApiOperation({ summary: 'Register user' })
+  @ApiOperation({
+    summary:
+      'User registration with credentials and storing user data in MongoDB.',
+  })
   @ApiOkResponse({
     description: 'User registered Response.',
     schema: {
@@ -43,7 +46,9 @@ export class UsersController {
     return this.usersService.register(createUserDto);
   }
 
-  @ApiOperation({ summary: 'Login user' })
+  @ApiOperation({
+    summary: 'Allows the user to login and obtain an access token using JWT.',
+  })
   @ApiBody({ type: LoginUserDto })
   @ApiOkResponse({
     description: 'Login Response',
@@ -59,7 +64,9 @@ export class UsersController {
     return this.usersService.login(loginUserDto);
   }
 
-  @ApiOperation({ summary: 'Get user profile' })
+  @ApiOperation({
+    summary: "Authenticated request to retrieve the user's profile.",
+  })
   @ApiOkResponse({
     type: UserResponseDto,
   })
@@ -69,7 +76,9 @@ export class UsersController {
     return this.usersService.getProfile(req.user.userId);
   }
 
-  @ApiOperation({ summary: 'Add movie to your watch list' })
+  @ApiOperation({
+    summary: 'Allows authenticated users to add a movie to their watchlist.',
+  })
   @ApiOkResponse({ type: UserResponseDto })
   @UseGuards(AuthGuard)
   @Put('/:movieId/watch-list')

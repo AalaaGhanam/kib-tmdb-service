@@ -3,19 +3,6 @@
 Welcome to the TMDB APIs written in NodeJS using NestJS framework.
 This is a service orchestration layer responsible for connecting frontend applications to KIB TMDB backend business systems.
 
-## Running the app
-
-```sh
-# Run
-docker-compose up
-
-# Access Swagger Docs
-http://localhost:8080/api/docs/#/
-
-# Stop
-docker-compose down
-```
-
 ## Development
 ### Development Prerequisites
 
@@ -27,14 +14,11 @@ To start development on this project install the following applications:
 4. Install NestJS cli on your computer `npm install -g @nestjs/cli`
 4. Install MongoDB (https://www.mongodb.com/docs/manual/installation/)
 
+### Installation
+
 Before starting development, create a feature branch from the develop branch following this pattern
 feature/{feature-name}/{description-of-change} .e.g. feature/tmdb/admin-profile
-Clone the repositorya abd install project dependencies by running the below commands.
-Once all dependencies are installed start Redis and MongoDB, as the application relies on
-Redis for data caching and MongoDB for storing data. The application relies on environment variables for most
-of its configuration using the dotenv NodeJS module. To set up environment
-variables copy and paste then rename the .dev.env files to .env.
-
+Clone the repository and install project dependencies by running the below commands.
 
 - Clone repository
 
@@ -47,48 +31,79 @@ git clone https://github.com/AalaaGhanam/kib-tmdb-service.git
 ```sh
 npm i
 ```
+Once all dependencies are installed start Redis and MongoDB, as the application relies on
+Redis for data caching and MongoDB for storing data, and run below commands to start the application.
+The application relies on environment variables for most
+of its configuration using the dotenv NodeJS module. To set up environment
+variables copy and paste then rename the .dev.env files to .env.
+
+> [!IMPORTANT]
+> to intitial and sync the database with tmdb database, call /sync endpoint after stating the service, Please check the endpoint details below.
+
 
 - Run service
 
 ```sh
 npm run start
 ```
-
 - Executing tests
-
 ```sh
 npm run test
 ```
+- Access Swagger Docs
+```sh
+http://localhost:8080/api/docs/#/
+```
+- Run throw docker
+```sh
+# Run
+docker-compose up
 
-## Endpoints
+# Stop
+docker-compose down
+```
+
+### Service Structure and Endpoints
  
-### Ping 
+Kib TMDB service consists two main controllers (User and TMDB API controllers), here's a detailed breakdown of the API endpoints you mentioned:
+
+1. **User Controller Endpoints:**<br />
+**Register User:** User registration with credentials and storing user data in MongoDB.<br />
+**Login:** Allows the user to login and obtain an access token using JWT.<br />
+**Get My Profile:** Authenticated request to retrieve the user's profile.<br />
+**Add Movie to Watchlist:** Allows authenticated users to add a movie to their watchlist.<br /><br />
+2. **TMDB API Controller Endpoints:**<br />
+**Add Movie:** Allows an authenticated user to add a movie to the database.<br />
+**List All Movies:** Allows user to list all movies from the database.<br />
+**Get Movie:** Allows user to get movie by Id from the database.<br />
+**Update Movie:** Allows an authenticated user to update the movie details.<br />
+**Delete Movie:** Allows an authenticated user to delete a movie from the database.<br />
+**Rate Movie:** Allows users to rate a movie (average rating is stored).<br />
+**Sync Movies:** This endpoint syncs and updates the MongoDB database with movie data from the TMDB API.<br />
+
+
+#### Ping 
 
 ```sh
 # check service connection
 GET: http://localhost:8080/api/ping
 ```
 
-### Users 
+#### Users 
 
 ```sh
 # register new user
 POST: http://localhost:8080/api/users/register
-payload {
-    "username": "user",
-    "password": "testUser$",
-    "email": "testUser@test.com"
-}
 
 # login and get the token to be able to use the service endpoints
 POST: http://localhost:8080/api/users/login
-payload {
-    "email": "usernamedd@ee",
-    "password": "testUser$",
-}
 
-# lget user profile
+# get user profile
 GET: http://localhost:8080/api/users/profile
+--header 'Authorization: ••••••'
+
+# add movie to my watch list
+PUT: http://localhost:8080/api/users/{movieId}/watch-list
 --header 'Authorization: ••••••'
 ```
 
@@ -97,23 +112,26 @@ GET: http://localhost:8080/api/users/profile
 ```sh
 # add movie
 POST: http://localhost:8080/api/tmdb/movies
-payload {
-    "username": "user",
-    "password": "testUser$",
-    "email": "testUser@test.com"
-}
+--header 'Authorization: ••••••'
 
 # list all movies
 GET: http://localhost:8080/api/movies
+
+# get movie
+GET: http://localhost:8080/api/movies/{movieId}
+
+# update
+PUT: http://localhost:8080/api/movies/{movieId}
 --header 'Authorization: ••••••'
 
-# lget user profile
-GET: http://localhost:8080/api/users/profile
+# remove movie
+DEL: http://localhost:8080/api/movies/{movieId}
 --header 'Authorization: ••••••'
+
+# rate movie
+PUT: http://localhost:8080/api/movies/{movieId}/rate
+--header 'Authorization: ••••••'
+
+# sync movies
+GET: http://localhost:8080/api/movies/sync
 ```
-
-
-## Links
-Local dev BaseUrl and Swagger:
-
-http://localhost:8080/api/#/

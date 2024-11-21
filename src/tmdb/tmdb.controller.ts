@@ -37,34 +37,41 @@ export class TmdbController {
     private readonly syncTmdbService: SyncTmdbService,
   ) {}
 
-  @ApiOperation({ summary: 'Create Movie' })
+  @ApiOperation({
+    summary: 'Allows an authenticated user to add a movie to the database.',
+  })
   @ApiOkResponse({
     type: MovieResponseDto,
   })
   @ApiBody({ type: CreateMovieDto })
+  @UseGuards(AuthGuard)
   @Post('/movies')
   async createMovie(@Body() createMovieDto: CreateMovieDto) {
     return this.tmdbService.createMovie(createMovieDto);
   }
 
-  @ApiOperation({ summary: 'List all movies' })
+  @ApiOperation({
+    summary: 'Allows user to list all movies from the database.',
+  })
   @ApiResponse({ type: [MovieResponseDto] })
-  @UseGuards(AuthGuard)
   @Get('/movies')
   async findAllMovies(@Query() filterMovieDto: FilterMovieDto) {
     return this.tmdbService.findAllMovies(filterMovieDto);
   }
 
-  @ApiOperation({ summary: 'Get movie by movieId' })
+  @ApiOperation({
+    summary: 'Allows user to list all movies from the database.',
+  })
   @ApiResponse({ type: MovieResponseDto })
-  @UseGuards(AuthGuard)
   @Get('/movies/:movieId')
   async findOneMovie(@Param('movieId') id: string) {
     return this.tmdbService.findOneMovie(id);
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Update movie' })
+  @ApiOperation({
+    summary: 'Allows an authenticated user to update the movie details.',
+  })
   @ApiResponse({ type: MovieResponseDto })
   @UseGuards(AuthGuard)
   @Put('/movies/:movieId')
@@ -75,14 +82,19 @@ export class TmdbController {
     return await this.tmdbService.updateMovie(String(id), updateMovieDto);
   }
 
-  @ApiOperation({ summary: 'Delete movie' })
+  @ApiOperation({
+    summary:
+      'Allows an authenticated user to delete a movie from the database.',
+  })
   @UseGuards(AuthGuard)
   @Delete('/movies/:movieId')
   async remove(@Param('movieId') id: string): Promise<boolean> {
     return await this.tmdbService.removeMovie(id);
   }
 
-  @ApiOperation({ summary: 'Rate movie' })
+  @ApiOperation({
+    summary: 'Allows users to rate a movie (average rating is stored).',
+  })
   @ApiResponse({ type: MovieResponseDto })
   @UseGuards(AuthGuard)
   @Put('/movies/:movieId/rate')
@@ -94,8 +106,10 @@ export class TmdbController {
     return this.tmdbService.rateMovie(id, rateMovieDto, req.user.userId);
   }
 
-  @ApiOperation({ summary: 'Sync movies database with tmdb api' })
-  @UseGuards(AuthGuard)
+  @ApiOperation({
+    summary:
+      'This endpoint syncs and updates the MongoDB database with movie data from the TMDB API.',
+  })
   @ApiOkResponse({
     description: 'Sync Response',
     schema: {
@@ -105,7 +119,7 @@ export class TmdbController {
       },
     },
   })
-  @Post('/sync')
+  @Post('/movies/sync')
   async sync(): Promise<string> {
     await this.syncTmdbService.syncMovies();
     return 'Movies synced successfully!';
