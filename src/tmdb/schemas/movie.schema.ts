@@ -3,6 +3,9 @@ import { Document } from 'mongoose';
 
 @Schema()
 export class Movie extends Document {
+  @Prop()
+  tmdbId: string;
+
   @Prop({ required: true })
   title: string;
 
@@ -17,9 +20,6 @@ export class Movie extends Document {
 
   @Prop({ type: [{ userId: String, rating: Number }] })
   ratings: { userId: string; rating: number }[];
-
-  @Prop()
-  overview: string;
 
   @Prop()
   releaseDate: string;

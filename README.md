@@ -1,6 +1,5 @@
 # KIB TMDB Service
 
-This is the architecture of AMON NodeJS Test.
 Welcome to the TMDB APIs written in NodeJS using NestJS framework.
 This is a service orchestration layer responsible for connecting frontend applications to KIB TMDB backend business systems.
 

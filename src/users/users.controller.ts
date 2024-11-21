@@ -29,11 +29,11 @@ export class UsersController {
 
   @ApiOperation({ summary: 'Register user' })
   @ApiOkResponse({
-    description: 'User registered successfully.',
+    description: 'User registered Response.',
     schema: {
       title: 'RegisterResponse',
       properties: {
-        message: { type: 'string' },
+        message: { type: 'User registered successfully.' },
       },
     },
   })

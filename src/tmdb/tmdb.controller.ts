@@ -26,12 +26,16 @@ import {
 import { MovieResponseDto } from './dto/movie.response.dto';
 import { UpdateMovieDto } from './dto/update.dto';
 import { Movie } from './schemas/movie.schema';
+import { SyncTmdbService } from './sync.service';
 
 @ApiBearerAuth()
 @ApiTags('Tmdb')
 @Controller('tmdb')
 export class TmdbController {
-  constructor(private readonly tmdbService: TmdbService) {}
+  constructor(
+    private readonly tmdbService: TmdbService,
+    private readonly syncTmdbService: SyncTmdbService,
+  ) {}
 
   @ApiOperation({ summary: 'Create Movie' })
   @ApiOkResponse({
@@ -88,5 +92,22 @@ export class TmdbController {
     @Request() req,
   ): Promise<Movie> {
     return this.tmdbService.rateMovie(id, rateMovieDto, req.user.userId);
+  }
+
+  @ApiOperation({ summary: 'Sync movies database with tmdb api' })
+  @UseGuards(AuthGuard)
+  @ApiOkResponse({
+    description: 'Sync Response',
+    schema: {
+      title: 'SyncMoviesResponse',
+      properties: {
+        message: { type: 'Movies synced successfully!' },
+      },
+    },
+  })
+  @Post('/sync')
+  async sync(): Promise<string> {
+    await this.syncTmdbService.syncMovies();
+    return 'Movies synced successfully!';
   }
 }

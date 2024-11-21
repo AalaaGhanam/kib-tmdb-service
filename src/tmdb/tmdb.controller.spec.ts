@@ -7,6 +7,7 @@ import { CreateMovieDto } from './dto/create.dto';
 import { FilterMovieDto } from './dto/filter.dto';
 import { UpdateMovieDto } from './dto/update.dto';
 import { RateMovieDto } from './dto/rate.dto';
+import { SyncTmdbService } from './sync.service';
 
 describe('TmdbController', () => {
   let controller: TmdbController;
@@ -19,6 +20,10 @@ describe('TmdbController', () => {
     updateMovie: jest.fn(),
     removeMovie: jest.fn(),
     rateMovie: jest.fn(),
+  };
+
+  const mockSyncTmdbService = {
+    syncMovies: jest.fn(),
   };
 
   const mockJwtService = {
@@ -37,6 +42,10 @@ describe('TmdbController', () => {
         {
           provide: JwtService,
           useValue: mockJwtService,
+        },
+        {
+          provide: SyncTmdbService,
+          useValue: mockSyncTmdbService,
         },
       ],
     })

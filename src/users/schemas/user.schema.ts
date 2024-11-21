@@ -1,4 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { isEmail } from 'class-validator';
 import * as mongoose from 'mongoose';
 
 @Schema()
@@ -9,7 +10,7 @@ export class User extends mongoose.Document {
   @Prop({ required: true })
   password: string;
 
-  @Prop()
+  @Prop({ validate: [isEmail, 'invalid email'], required: true })
   email?: string;
 
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Movie' }] })
