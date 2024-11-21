@@ -1,0 +1,34 @@
+version: 2.1
+jobs:
+  build:
+    docker:
+      - image: circleci/node:18
+    steps:
+      - checkout
+      - run:
+          name: npm update
+          command: 'sudo npm install -g npm'
+      - run:
+          name: install dependencies
+          command: 'npm install'
+      - run:
+          name: dotonly
+          command: 'npm run test:dotonly'
+      - run:
+          name: lint
+          command: 'npm run lint'
+      - run:
+          name: format check
+          command: 'npm run format'
+      - run:
+          name: unit test
+          command: 'npm run test'
+      - run:
+          name: coverage check
+          command: 'npm run test:cov'
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build
