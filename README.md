@@ -1,99 +1,137 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# KIB TMDB Service
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Welcome to the TMDB APIs written in NodeJS using NestJS framework.
+This is a service orchestration layer responsible for connecting frontend applications to KIB TMDB backend business systems.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Development
+### Development Prerequisites
 
-## Description
+To start development on this project install the following applications:
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+1. VS Code (https://code.visualstudio.com/download)
+2. Redis (https://redis.io/download or https://github.com/microsoftarchive/redis/releases)
+3. NodeJS (https://nodejs.org/en/download/)
+4. Install NestJS cli on your computer `npm install -g @nestjs/cli`
+4. Install MongoDB (https://www.mongodb.com/docs/manual/installation/)
 
-## Project setup
+### Installation
 
-```bash
-$ npm install
+Before starting development, create a feature branch from the develop branch following this pattern
+feature/{feature-name}/{description-of-change} .e.g. feature/tmdb/admin-profile
+Clone the repository and install project dependencies by running the below commands.
+
+- Clone repository
+
+```sh
+git clone https://github.com/AalaaGhanam/kib-tmdb-service.git
 ```
 
-## Compile and run the project
+- Install node dependencies
 
-```bash
-# development
-$ npm run start
+```sh
+npm i
+```
+Once all dependencies are installed start Redis and MongoDB, as the application relies on
+Redis for data caching and MongoDB for storing data, and run below commands to start the application.
+The application relies on environment variables for most
+of its configuration using the dotenv NodeJS module. To set up environment
+variables copy and paste then rename the .dev.env files to .env.
 
-# watch mode
-$ npm run start:dev
+> [!IMPORTANT]
+> to intitial and sync the database with tmdb database, call /sync endpoint after stating the service, Please check the endpoint details below.
 
-# production mode
-$ npm run start:prod
+
+- Run service
+
+```sh
+npm run start
+```
+- Executing tests
+```sh
+npm run test
+```
+- Access Swagger Docs
+```sh
+http://localhost:8080/api/docs/#/
+```
+- Run throw docker
+```sh
+# Run
+docker-compose up
+
+# Stop
+docker-compose down
 ```
 
-## Run tests
+### Service Structure and Endpoints
+ 
+Kib TMDB service consists two main controllers (User and TMDB API controllers), here's a detailed breakdown of the API endpoints you mentioned:
 
-```bash
-# unit tests
-$ npm run test
+1. **User Controller Endpoints:**<br />
+**Register User:** User registration with credentials and storing user data in MongoDB.<br />
+**Login:** Allows the user to login and obtain an access token using JWT.<br />
+**Get My Profile:** Authenticated request to retrieve the user's profile.<br />
+**Add Movie to Watchlist:** Allows authenticated users to add a movie to their watchlist.<br /><br />
+2. **TMDB API Controller Endpoints:**<br />
+**Add Movie:** Allows an authenticated user to add a movie to the database.<br />
+**List All Movies:** Allows user to list all movies from the database.<br />
+**Get Movie:** Allows user to get movie by Id from the database.<br />
+**Update Movie:** Allows an authenticated user to update the movie details.<br />
+**Delete Movie:** Allows an authenticated user to delete a movie from the database.<br />
+**Rate Movie:** Allows users to rate a movie (average rating is stored).<br />
+**Sync Movies:** This endpoint syncs and updates the MongoDB database with movie data from the TMDB API.<br />
 
-# e2e tests
-$ npm run test:e2e
 
-# test coverage
-$ npm run test:cov
+#### Ping 
+
+```sh
+# check service connection
+GET: http://localhost:8080/api/ping
 ```
 
-## Deployment
+#### Users 
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+```sh
+# register new user
+POST: http://localhost:8080/api/users/register
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+# login and get the token to be able to use the service endpoints
+POST: http://localhost:8080/api/users/login
 
-```bash
-$ npm install -g mau
-$ mau deploy
+# get user profile
+GET: http://localhost:8080/api/users/profile
+--header 'Authorization: ••••••'
+
+# add movie to my watch list
+PUT: http://localhost:8080/api/users/{movieId}/watch-list
+--header 'Authorization: ••••••'
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### TMDB 
 
-## Resources
+```sh
+# add movie
+POST: http://localhost:8080/api/tmdb/movies
+--header 'Authorization: ••••••'
 
-Check out a few resources that may come in handy when working with NestJS:
+# list all movies
+GET: http://localhost:8080/api/movies
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+# get movie
+GET: http://localhost:8080/api/movies/{movieId}
 
-## Support
+# update
+PUT: http://localhost:8080/api/movies/{movieId}
+--header 'Authorization: ••••••'
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+# remove movie
+DEL: http://localhost:8080/api/movies/{movieId}
+--header 'Authorization: ••••••'
 
-## Stay in touch
+# rate movie
+PUT: http://localhost:8080/api/movies/{movieId}/rate
+--header 'Authorization: ••••••'
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+# sync movies
+GET: http://localhost:8080/api/movies/sync
+```
