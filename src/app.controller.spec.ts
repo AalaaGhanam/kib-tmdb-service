@@ -14,9 +14,21 @@ describe('AppController', () => {
     appController = app.get<AppController>(AppController);
   });
 
-  describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
+  describe('ping tmdb service', () => {
+    it('should return ping response', async () => {
+      const request = {
+        url: 'https://',
+        headers: {},
+      };
+      const response = {
+        greeting: 'Hello from TMDB',
+        date: new Date(),
+        url: request.url,
+        headers: Object.assign({}, request.headers),
+      };
+      const pingResponse = await appController.ping(request);
+
+      expect(pingResponse).toEqual(response);
     });
   });
 });

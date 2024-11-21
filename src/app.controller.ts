@@ -25,7 +25,7 @@ export class AppController {
     schema: PING_RESPONSE,
   })
   @Get('/ping')
-  ping(@Request() req): Promise<object> {
+  ping(@Request() req) {
     return this.appService.ping(req);
   }
 }
