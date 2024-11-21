@@ -1,93 +1,195 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from './users.service';
-import { User } from './schemas/user.schema';
-import { getModelToken } from '@nestjs/mongoose';
-// import { Model } from 'mongoose';
 import { UsersRepository } from './users.repository';
-import { JwtStrategy } from './jwt.strategy';
 import { JwtService } from '@nestjs/jwt';
+import { TmdbService } from '../tmdb/tmdb.service';
+import { BadRequestException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-
-const mockUser = {
-  _id: '673e12a6c4eceed5d35c8824',
-  username: 'testUser',
-  password: 'test@password',
-  email: 'user@test.com',
-};
+import { User } from './schemas/user.schema';
+import { Movie } from 'src/tmdb/schemas/movie.schema';
 
 describe('UsersService', () => {
   let service: UsersService;
-  // let model: Model<User>;
-  let usersRepository: UsersRepository;
-  let jwtService: JwtService;
-
-  const mockUserModel = {
-    findOne: jest.fn().mockResolvedValue(mockUser),
-    exec: jest.fn().mockResolvedValue(mockUser),
-    create: jest
-      .fn()
-      .mockImplementation((dto) =>
-        Promise.resolve({ _id: '673e12a6c4eceed5d35c8824', ...dto }),
-      ),
-  };
+  let usersRepository: Partial<UsersRepository>;
+  let jwtService: Partial<JwtService>;
+  let tmdbService: Partial<TmdbService>;
 
   beforeEach(async () => {
+    usersRepository = {
+      create: jest.fn(),
+      findByEmail: jest.fn(),
+      findById: jest.fn(),
+      findByUsername: jest.fn(),
+    };
+
+    jwtService = {
+      sign: jest.fn().mockReturnValue('mockToken'),
+    };
+
+    tmdbService = {
+      findOneMovie: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UsersService,
-        { provide: getModelToken(User.name), useValue: mockUserModel },
-        JwtStrategy,
-        UsersRepository,
-        JwtService,
+        { provide: UsersRepository, useValue: usersRepository },
+        { provide: JwtService, useValue: jwtService },
+        { provide: TmdbService, useValue: tmdbService },
       ],
     }).compile();
 
     service = module.get<UsersService>(UsersService);
-    // model = module.get<Model<User>>(getModelToken(User.name));
-    usersRepository = module.get<UsersRepository>(UsersRepository);
-    jwtService = module.get<JwtService>(JwtService);
   });
 
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
 
-  it('should login', async () => {
-    const hashedPassword = await bcrypt.hash(mockUser.password, 10);
-    const loginRequest = {
-      email: mockUser.email,
-      password: mockUser.password,
-    };
-    const userResponse = {
-      ...mockUser,
-      password: hashedPassword,
-    } as User;
-    jest
-      .spyOn(usersRepository, 'findByEmail')
-      .mockResolvedValueOnce(userResponse);
-    jest.spyOn(jwtService, 'sign').mockReturnValueOnce('token');
+  describe('register', () => {
+    it('should hash the password and create a new user', async () => {
+      const createUserDto = {
+        username: 'testuser',
+        password: 'password123',
+        email: 'test@test.com',
+      };
+      const createSpy = jest.spyOn(usersRepository, 'create');
+      jest.spyOn(bcrypt, 'hash').mockResolvedValue('hashedPassword');
 
-    const loginResponse = await service.login(loginRequest);
-    expect(loginResponse).toEqual({
-      access_token: 'token',
+      const result = await service.register(createUserDto);
+
+      expect(bcrypt.hash).toHaveBeenCalledWith('password123', 10);
+      expect(createSpy).toHaveBeenCalledWith({
+        ...createUserDto,
+        password: 'hashedPassword',
+      });
+      expect(result).toEqual({ message: 'User registered successfully' });
+    });
+
+    it('should throw an error if registration fails', async () => {
+      jest
+        .spyOn(usersRepository, 'create')
+        .mockRejectedValue(new Error('Database error'));
+
+      await expect(
+        service.register({
+          username: 'test',
+          password: '123',
+          email: 'test@test.com',
+        }),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
-  it('should get user profile', async () => {
-    const userResponse = mockUser as User;
-    jest.spyOn(usersRepository, 'findById').mockResolvedValueOnce(userResponse);
+  describe('login', () => {
+    it('should validate the user and return a token', async () => {
+      const loginUserDto = { email: 'test@test.com', password: 'password123' };
+      const user = {
+        _id: '1',
+        username: 'testuser',
+        password: 'hashedPassword',
+      };
+      jest
+        .spyOn(usersRepository, 'findByEmail')
+        .mockResolvedValue(user as User);
+      jest.spyOn(bcrypt, 'compare').mockResolvedValue(true);
 
-    const user = await service.getProfile(mockUser._id);
-    expect(user).toEqual(mockUser);
+      const result = await service.login(loginUserDto);
+
+      expect(bcrypt.compare).toHaveBeenCalledWith(
+        'password123',
+        'hashedPassword',
+      );
+      expect(jwtService.sign).toHaveBeenCalledWith({
+        username: 'testuser',
+        userId: '1',
+      });
+      expect(result).toEqual({ access_token: 'mockToken' });
+    });
+
+    it('should throw an error if email or password is invalid', async () => {
+      jest.spyOn(usersRepository, 'findByEmail').mockResolvedValue(null);
+
+      await expect(
+        service.login({ email: 'test@test.com', password: 'wrongpassword' }),
+      ).rejects.toThrow(BadRequestException);
+    });
   });
 
-  it('should find a user by username', async () => {
-    const userResponse = mockUser as User;
-    jest
-      .spyOn(usersRepository, 'findByUsername')
-      .mockResolvedValueOnce(userResponse);
+  describe('getProfile', () => {
+    it('should return user profile', async () => {
+      const user = { _id: '1', username: 'testuser' };
+      jest.spyOn(usersRepository, 'findById').mockResolvedValue(user as User);
 
-    const user = await service.findByUsername(mockUser.username);
-    expect(user).toEqual(mockUser);
+      const result = await service.getProfile('1');
+
+      expect(usersRepository.findById).toHaveBeenCalledWith('1');
+      expect(result).toEqual(user);
+    });
+
+    it('should throw an error if user not found', async () => {
+      jest
+        .spyOn(usersRepository, 'findById')
+        .mockRejectedValue(new BadRequestException());
+
+      await expect(service.getProfile('1')).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+  });
+
+  describe('findByUsername', () => {
+    it('should return user by username', async () => {
+      const user = { _id: '1', username: 'testuser' };
+      jest
+        .spyOn(usersRepository, 'findByUsername')
+        .mockResolvedValue(user as User);
+
+      const result = await service.findByUsername('testuser');
+
+      expect(usersRepository.findByUsername).toHaveBeenCalledWith('testuser');
+      expect(result).toEqual(user);
+    });
+
+    it('should throw an error if user not found', async () => {
+      jest
+        .spyOn(usersRepository, 'findByUsername')
+        .mockRejectedValue(new BadRequestException());
+
+      await expect(service.findByUsername('testuser')).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+  });
+
+  describe('addToWatchList', () => {
+    it('should add a movie to the watchlist', async () => {
+      const movie = { _id: '1', title: 'Movie' };
+      const user = {
+        _id: '2',
+        watchList: [],
+        save: jest.fn().mockResolvedValue(true),
+      };
+      jest.spyOn(tmdbService, 'findOneMovie').mockResolvedValue(movie as Movie);
+      jest.spyOn(usersRepository, 'findById').mockResolvedValue(user as any);
+
+      await service.addToWatchList('1', '2');
+
+      expect(tmdbService.findOneMovie).toHaveBeenCalledWith('1');
+      expect(usersRepository.findById).toHaveBeenCalledWith('2');
+      expect(user.watchList).toContain('1');
+      expect(user.save).toHaveBeenCalled();
+    });
+
+    it('should throw an error if movie already in watchlist', async () => {
+      const movie = { _id: '1', title: 'Movie' };
+      const user = { _id: '2', watchList: ['1'], save: jest.fn() };
+      jest.spyOn(tmdbService, 'findOneMovie').mockResolvedValue(movie as Movie);
+      jest.spyOn(usersRepository, 'findById').mockResolvedValue(user as any);
+
+      await expect(service.addToWatchList('1', '2')).rejects.toThrow(
+        BadRequestException,
+      );
+    });
   });
 });

@@ -11,7 +11,7 @@ This is a service orchestration layer responsible for connecting frontend applic
 docker-compose up
 
 # Access Swagger Docs
-http://localhost:8080/api/#/
+http://localhost:8080/api/docs/#/
 
 # Stop
 docker-compose down

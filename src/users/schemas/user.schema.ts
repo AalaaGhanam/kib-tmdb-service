@@ -1,8 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import * as mongoose from 'mongoose';
 
 @Schema()
-export class User extends Document {
+export class User extends mongoose.Document {
   @Prop({ required: true, unique: true })
   username: string;
 
@@ -11,6 +11,9 @@ export class User extends Document {
 
   @Prop()
   email?: string;
+
+  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Movie' }] })
+  watchList?: mongoose.Schema.Types.ObjectId[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

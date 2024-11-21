@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Movie } from './schemas/movie.schema';
@@ -7,6 +11,7 @@ import { FilterMovieDto } from './dto/filter.dto';
 import { RateMovieDto } from './dto/rate.dto';
 import { RedisService } from '../redis/redis.service';
 import { REDIS_EXPIRE_TIME } from '../config/redis.config';
+import { UpdateMovieDto } from './dto/update.dto';
 
 @Injectable()
 export class TmdbService {
@@ -16,44 +21,56 @@ export class TmdbService {
   ) {}
 
   async createMovie(createMovieDto: CreateMovieDto): Promise<Movie> {
-    const movie = new this.movieModel(createMovieDto);
-    return movie.save();
+    try {
+      const movie = new this.movieModel(createMovieDto);
+      return movie.save();
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
   }
 
   async findAllMovies(filterDto: FilterMovieDto): Promise<Movie[]> {
-    const { genre, search, page, limit } = filterDto;
-    const cacheKey = `movies_cache-${genre}-${search}-${page}-${limit}`;
-    const cachedData = await this.redisService.get(cacheKey);
+    try {
+      const { genre, search, page, limit } = filterDto;
+      const cacheKey = `movies_cache-${genre}-${search}-${page}-${limit}`;
+      const cachedData = await this.redisService.get(cacheKey);
 
-    if (cachedData) {
-      return JSON.parse(cachedData);
+      if (cachedData) {
+        return JSON.parse(cachedData);
+      }
+
+      const query = genre ? { genres: genre } : {};
+      if (search) {
+        query['title'] = { $regex: search, $options: 'i' };
+      }
+
+      const movies = await this.movieModel
+        .find(query)
+        .skip((page - 1) * limit)
+        .limit(limit);
+
+      await this.redisService.set(
+        cacheKey,
+        JSON.stringify(movies),
+        Number(REDIS_EXPIRE_TIME),
+      );
+
+      return movies;
+    } catch (error) {
+      throw new BadRequestException(error);
     }
-
-    const query = genre ? { genres: genre } : {};
-    if (search) {
-      query['title'] = { $regex: search, $options: 'i' };
-    }
-
-    const movies = await this.movieModel
-      .find(query)
-      .skip((page - 1) * limit)
-      .limit(limit);
-
-    await this.redisService.set(
-      cacheKey,
-      JSON.stringify(movies),
-      Number(REDIS_EXPIRE_TIME),
-    );
-
-    return movies;
   }
 
   async findOneMovie(id: string): Promise<Movie> {
-    const movie = await this.movieModel.findById(id);
-    if (!movie) {
-      throw new NotFoundException(`Movie with ID ${id} not found.`);
+    try {
+      const movie = await this.movieModel.findById(id);
+      if (!movie) {
+        throw new NotFoundException(`Movie with ID ${id} not found.`);
+      }
+      return movie;
+    } catch (error) {
+      throw new BadRequestException(error);
     }
-    return movie;
   }
 
   async rateMovie(
@@ -61,20 +78,44 @@ export class TmdbService {
     rateDto: RateMovieDto,
     userId: string,
   ): Promise<Movie> {
-    const movie = await this.findOneMovie(id);
+    try {
+      const movie = await this.findOneMovie(id);
 
-    const existingRating = movie.ratings.find(
-      (rating) => rating.userId === userId,
-    );
-    if (existingRating) {
-      existingRating.rating = rateDto.rating;
-    } else {
-      movie.ratings.push({ userId, rating: rateDto.rating });
+      const existingRating = movie.ratings.find(
+        (rating) => rating.userId === userId,
+      );
+      if (existingRating) {
+        existingRating.rating = rateDto.rating;
+      } else {
+        movie.ratings.push({ userId, rating: rateDto.rating });
+      }
+
+      const totalRating = movie.ratings.reduce((sum, r) => sum + r.rating, 0);
+      movie.averageRating = totalRating / movie.ratings.length;
+
+      return movie.save();
+    } catch (error) {
+      throw new BadRequestException(error);
     }
+  }
 
-    const totalRating = movie.ratings.reduce((sum, r) => sum + r.rating, 0);
-    movie.averageRating = totalRating / movie.ratings.length;
+  async updateMovie(id: string, updatedMovie: UpdateMovieDto): Promise<Movie> {
+    try {
+      const movie = await this.movieModel.findByIdAndUpdate(id, updatedMovie, {
+        new: true,
+      });
+      return await movie.save();
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
+  }
 
-    return movie.save();
+  async removeMovie(id: string): Promise<boolean> {
+    try {
+      await this.movieModel.findByIdAndDelete(id);
+      return true;
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
   }
 }

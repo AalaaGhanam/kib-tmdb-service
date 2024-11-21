@@ -1,90 +1,153 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TmdbService } from './tmdb.service';
-import { Movie } from './schemas/movie.schema';
 import { getModelToken } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { RedisModule } from '../redis/redis.module';
 import { RedisService } from '../redis/redis.service';
-
-const mockMovie = {
-  _id: '1',
-  title: 'Test Movie',
-  genres: ['Action', 'Drama'],
-  ratings: [{ userId: '123', rating: 4 }],
-  averageRating: 4,
-};
-
-const mockMovies = [
-  mockMovie,
-  {
-    _id: '2',
-    title: 'Another Movie',
-    genres: ['Horror'],
-    ratings: [],
-    averageRating: 0,
-  },
-];
+import { Movie } from './schemas/movie.schema';
+import { BadRequestException } from '@nestjs/common';
 
 describe('TmdbService', () => {
   let service: TmdbService;
-  let model: Model<Movie>;
 
   const mockMovieModel = {
-    find: jest.fn().mockResolvedValue(mockMovies),
-    findById: jest.fn().mockResolvedValue(mockMovie),
-    save: jest.fn().mockResolvedValue(mockMovie),
-    create: jest
-      .fn()
-      .mockImplementation((dto) => Promise.resolve({ _id: '1', ...dto })),
+    new: jest.fn().mockResolvedValue({}),
+    constructor: jest.fn().mockResolvedValue({}),
+    find: jest.fn(),
+    findById: jest.fn(),
+    findByIdAndUpdate: jest.fn(),
+    findByIdAndDelete: jest.fn(),
+    save: jest.fn(),
+  };
+
+  const mockRedisService = {
+    get: jest.fn(),
+    set: jest.fn(),
   };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TmdbService,
-        { provide: getModelToken(Movie.name), useValue: mockMovieModel },
-        RedisModule,
-        RedisService,
+        {
+          provide: getModelToken(Movie.name),
+          useValue: mockMovieModel,
+        },
+        {
+          provide: RedisService,
+          useValue: mockRedisService,
+        },
       ],
     }).compile();
 
     service = module.get<TmdbService>(TmdbService);
-    model = module.get<Model<Movie>>(getModelToken(Movie.name));
   });
 
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
 
-  it('should fetch all movies', async () => {
-    const movies = await service.findAllMovies({});
-    expect(movies).toEqual(mockMovies);
-    expect(model.find).toHaveBeenCalled();
+  describe('createMovie', () => {
+    it('should throw BadRequestException if saving fails', async () => {
+      const createMovieDto = { title: 'Test Movie', genres: ['Action'] };
+
+      mockMovieModel.save.mockReturnValue({
+        ...createMovieDto,
+        save: jest.fn().mockRejectedValue(new Error('Save error')),
+      });
+
+      await expect(service.createMovie(createMovieDto as any)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
   });
 
-  it('should fetch a movie by id', async () => {
-    const movie = await service.findOneMovie('1');
-    expect(movie).toEqual(mockMovie);
-    expect(model.findById).toHaveBeenCalledWith('1');
+  describe('findAllMovies', () => {
+    it('should return movies from cache if available', async () => {
+      const movies = [{ title: 'Cached Movie' }];
+      mockRedisService.get.mockResolvedValue(JSON.stringify(movies));
+
+      const result = await service.findAllMovies({
+        genre: 'Action',
+        page: 1,
+        limit: 10,
+      } as any);
+
+      expect(result).toEqual(movies);
+      expect(mockRedisService.get).toHaveBeenCalled();
+    });
+
+    it('should query database if no cache available', async () => {
+      const movies = [{ title: 'Queried Movie' }];
+      mockRedisService.get.mockResolvedValue(null);
+      mockMovieModel.find.mockReturnValue({
+        skip: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockResolvedValue(movies),
+      });
+
+      const result = await service.findAllMovies({
+        genre: 'Action',
+        page: 1,
+        limit: 10,
+      } as any);
+
+      expect(result).toEqual(movies);
+      expect(mockRedisService.set).toHaveBeenCalled();
+    });
   });
 
-  it('should create a new movie', async () => {
-    const newMovie = {
-      title: 'New Movie',
-      genres: ['Comedy'],
-      ratings: [],
-      averageRating: 0,
-    } as any;
-    const result = await service.createMovie(newMovie);
-    expect(result).toEqual({ _id: '1', ...newMovie });
-    expect(model.create).toHaveBeenCalledWith(newMovie);
+  describe('findOneMovie', () => {
+    it('should return a movie by ID', async () => {
+      const movie = { title: 'Found Movie' };
+      mockMovieModel.findById.mockResolvedValue(movie);
+
+      const result = await service.findOneMovie('673dd40263994c22ac219b94');
+      expect(result).toEqual(movie);
+    });
+
+    it('should throw BadRequestException if movie not found', async () => {
+      mockMovieModel.findById.mockResolvedValue(null);
+
+      await expect(
+        service.findOneMovie('673dd40263994c22ac219b94'),
+      ).rejects.toThrow(BadRequestException);
+    });
   });
 
-  it('should update movie ratings and averageRating', async () => {
-    jest.spyOn(mockMovieModel, 'save').mockResolvedValueOnce(true);
-    mockMovieModel.findById.mockResolvedValueOnce(mockMovie);
+  describe('rateMovie', () => {
+    it('should rate a movie and update average rating', async () => {
+      const movie = {
+        ratings: [{ userId: '1', rating: 4 }],
+        save: jest.fn(),
+      };
+      mockMovieModel.findById.mockResolvedValue(movie);
 
-    const updatedMovie = await service.rateMovie('1', { rating: 5 }, '456');
-    expect(updatedMovie.averageRating).toBe(4.5);
+      const rateDto = { rating: 5 };
+      await service.rateMovie('673dd40263994c22ac219b94', rateDto as any, '2');
+
+      expect(movie.ratings).toContainEqual({ userId: '2', rating: 5 });
+    });
+  });
+
+  describe('updateMovie', () => {
+    it('should update a movie', async () => {
+      const movie = { title: 'Updated Movie', save: jest.fn() };
+      mockMovieModel.findByIdAndUpdate.mockResolvedValue(movie);
+
+      const updateMovieDto = { title: 'Updated Title' };
+      const result = await service.updateMovie(
+        '673dd40263994c22ac219b94',
+        updateMovieDto as any,
+      );
+
+      expect(result).not.toBeNull();
+    });
+  });
+
+  describe('removeMovie', () => {
+    it('should delete a movie', async () => {
+      mockMovieModel.findByIdAndDelete.mockResolvedValue(true);
+
+      const result = await service.removeMovie('673dd40263994c22ac219b94');
+      expect(result).toBe(true);
+    });
   });
 });

@@ -5,6 +5,8 @@ import {
   Get,
   UseGuards,
   Request,
+  Param,
+  Put,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create.dto';
@@ -65,5 +67,13 @@ export class UsersController {
   @Get('profile')
   async getProfile(@Request() req) {
     return this.usersService.getProfile(req.user.userId);
+  }
+
+  @ApiOperation({ summary: 'Add movie to your watch list' })
+  @ApiOkResponse({ type: UserResponseDto })
+  @UseGuards(AuthGuard)
+  @Put('/:movieId/watch-list')
+  async rateMovie(@Param('movieId') id: string, @Request() req) {
+    return this.usersService.addToWatchList(id, req.user.userId);
   }
 }

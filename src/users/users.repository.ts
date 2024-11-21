@@ -19,7 +19,7 @@ export class UsersRepository {
   }
 
   async findById(userId: string): Promise<User> {
-    return this.userModel.findById(userId).select('-password').exec();
+    return await this.userModel.findById(userId).select('-password').exec();
   }
 
   async findByUsername(username: string): Promise<User> {

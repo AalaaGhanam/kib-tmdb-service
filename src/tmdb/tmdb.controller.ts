@@ -5,9 +5,10 @@ import {
   Body,
   Query,
   Param,
-  Patch,
   UseGuards,
   Request,
+  Delete,
+  Put,
 } from '@nestjs/common';
 import { TmdbService } from './tmdb.service';
 import { CreateMovieDto } from './dto/create.dto';
@@ -23,6 +24,8 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { MovieResponseDto } from './dto/movie.response.dto';
+import { UpdateMovieDto } from './dto/update.dto';
+import { Movie } from './schemas/movie.schema';
 
 @ApiBearerAuth()
 @ApiTags('Tmdb')
@@ -48,23 +51,42 @@ export class TmdbController {
     return this.tmdbService.findAllMovies(filterMovieDto);
   }
 
-  @ApiOperation({ summary: 'Get movies' })
+  @ApiOperation({ summary: 'Get movie by movieId' })
   @ApiResponse({ type: MovieResponseDto })
   @UseGuards(AuthGuard)
-  @Get('/movies/:id')
-  async findOneMovie(@Param('id') id: string) {
+  @Get('/movies/:movieId')
+  async findOneMovie(@Param('movieId') id: string) {
     return this.tmdbService.findOneMovie(id);
   }
 
-  @ApiOperation({ summary: 'Rate movies' })
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update movie' })
   @ApiResponse({ type: MovieResponseDto })
   @UseGuards(AuthGuard)
-  @Patch('/movies/:id/rate')
+  @Put('/movies/:movieId')
+  async update(
+    @Param('movieId') id: string,
+    @Body() updateMovieDto: UpdateMovieDto,
+  ): Promise<Movie> {
+    return await this.tmdbService.updateMovie(String(id), updateMovieDto);
+  }
+
+  @ApiOperation({ summary: 'Delete movie' })
+  @UseGuards(AuthGuard)
+  @Delete('/movies/:movieId')
+  async remove(@Param('movieId') id: string): Promise<boolean> {
+    return await this.tmdbService.removeMovie(id);
+  }
+
+  @ApiOperation({ summary: 'Rate movie' })
+  @ApiResponse({ type: MovieResponseDto })
+  @UseGuards(AuthGuard)
+  @Put('/movies/:movieId/rate')
   async rateMovie(
-    @Param('id') id: string,
+    @Param('movieId') id: string,
     @Body() rateMovieDto: RateMovieDto,
     @Request() req,
-  ) {
+  ): Promise<Movie> {
     return this.tmdbService.rateMovie(id, rateMovieDto, req.user.userId);
   }
 }

@@ -25,12 +25,6 @@ export class Movie extends Document {
   releaseDate: string;
 
   @Prop({ default: false })
-  isFavorite: boolean;
-
-  @Prop({ default: false })
-  inWatchlist: boolean;
-
-  @Prop({ default: false })
   adult: boolean;
 
   @Prop()
