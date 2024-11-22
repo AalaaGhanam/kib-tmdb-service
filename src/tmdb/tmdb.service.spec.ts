@@ -4,9 +4,11 @@ import { getModelToken } from '@nestjs/mongoose';
 import { RedisService } from '../redis/redis.service';
 import { Movie } from './schemas/movie.schema';
 import { BadRequestException } from '@nestjs/common';
+import { UsersRepository } from '../users/users.repository';
 
 describe('TmdbService', () => {
   let service: TmdbService;
+  let usersRepository: Partial<UsersRepository>;
 
   const mockMovieModel = {
     new: jest.fn().mockResolvedValue({}),
@@ -24,6 +26,10 @@ describe('TmdbService', () => {
   };
 
   beforeEach(async () => {
+    usersRepository = {
+      findById: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TmdbService,
@@ -35,6 +41,7 @@ describe('TmdbService', () => {
           provide: RedisService,
           useValue: mockRedisService,
         },
+        { provide: UsersRepository, useValue: usersRepository },
       ],
     }).compile();
 
@@ -124,6 +131,37 @@ describe('TmdbService', () => {
       await service.rateMovie('673dd40263994c22ac219b94', rateDto as any, '2');
 
       expect(movie.ratings).toContainEqual({ userId: '2', rating: 5 });
+    });
+  });
+
+  describe('addToWatchList', () => {
+    it('should add a movie to the watchlist', async () => {
+      const movie = { _id: '1', title: 'Movie' };
+      const user = {
+        _id: '2',
+        watchList: [],
+        save: jest.fn().mockResolvedValue(true),
+      };
+      jest.spyOn(service, 'findOneMovie').mockResolvedValue(movie as Movie);
+      jest.spyOn(usersRepository, 'findById').mockResolvedValue(user as any);
+
+      await service.addToWatchList('1', '2');
+
+      expect(service.findOneMovie).toHaveBeenCalledWith('1');
+      expect(usersRepository.findById).toHaveBeenCalledWith('2');
+      expect(user.watchList).toContain('1');
+      expect(user.save).toHaveBeenCalled();
+    });
+
+    it('should throw an error if movie already in watchlist', async () => {
+      const movie = { _id: '1', title: 'Movie' };
+      const user = { _id: '2', watchList: ['1'], save: jest.fn() };
+      jest.spyOn(service, 'findOneMovie').mockResolvedValue(movie as Movie);
+      jest.spyOn(usersRepository, 'findById').mockResolvedValue(user as any);
+
+      await expect(service.addToWatchList('1', '2')).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 

@@ -11,8 +11,8 @@ To start development on this project install the following applications:
 1. VS Code (https://code.visualstudio.com/download)
 2. Redis (https://redis.io/download or https://github.com/microsoftarchive/redis/releases)
 3. NodeJS (https://nodejs.org/en/download/)
-4. Install NestJS cli on your computer `npm install -g @nestjs/cli`
-4. Install MongoDB (https://www.mongodb.com/docs/manual/installation/)
+4. NestJS cli on your computer `npm install -g @nestjs/cli`
+4. MongoDB (https://www.mongodb.com/docs/manual/installation/)
 
 ### Installation
 
@@ -38,15 +38,15 @@ of its configuration using the dotenv NodeJS module. To set up environment
 variables copy and paste then rename the .dev.env files to .env.
 
 > [!IMPORTANT]
-> to intitial and sync the database with tmdb database, call /sync endpoint after stating the service, Please check the endpoint details below.
+> To initiate and sync the database with tmdb database, call /sync endpoint after starting the service, please check the endpoint details below.
 
 
-- Run service
+- Run Service
 
 ```sh
 npm run start
 ```
-- Executing tests
+- Executing Tests
 ```sh
 npm run test
 ```
@@ -54,7 +54,7 @@ npm run test
 ```sh
 http://localhost:8080/api/docs/#/
 ```
-- Run throw docker
+- Run Throw Docker
 ```sh
 # Run
 docker-compose up
@@ -65,22 +65,21 @@ docker-compose down
 
 ### Service Structure and Endpoints
  
-Kib TMDB service consists two main controllers (User and TMDB API controllers), here's a detailed breakdown of the API endpoints you mentioned:
+Kib TMDB service consists of two main controllers (User and TMDB API controllers), here's a detailed breakdown of the API endpoints:
 
 1. **User Controller Endpoints:**<br />
 **Register User:** User registration with credentials and storing user data in MongoDB.<br />
 **Login:** Allows the user to login and obtain an access token using JWT.<br />
 **Get My Profile:** Authenticated request to retrieve the user's profile.<br />
-**Add Movie to Watchlist:** Allows authenticated users to add a movie to their watchlist.<br /><br />
 2. **TMDB API Controller Endpoints:**<br />
+**Sync Movies:** This endpoint syncs and updates the MongoDB database with movie data from the TMDB API.<br />
 **Add Movie:** Allows an authenticated user to add a movie to the database.<br />
 **List All Movies:** Allows user to list all movies from the database.<br />
 **Get Movie:** Allows user to get movie by Id from the database.<br />
 **Update Movie:** Allows an authenticated user to update the movie details.<br />
 **Delete Movie:** Allows an authenticated user to delete a movie from the database.<br />
+**Add Movie to Watchlist:** Allows authenticated users to add a movie to their watchlist.<br />
 **Rate Movie:** Allows users to rate a movie (average rating is stored).<br />
-**Sync Movies:** This endpoint syncs and updates the MongoDB database with movie data from the TMDB API.<br />
-
 
 #### Ping 
 
@@ -101,15 +100,14 @@ POST: http://localhost:8080/api/users/login
 # get user profile
 GET: http://localhost:8080/api/users/profile
 --header 'Authorization: ••••••'
-
-# add movie to my watch list
-PUT: http://localhost:8080/api/users/{movieId}/watch-list
---header 'Authorization: ••••••'
 ```
 
 ### TMDB 
 
 ```sh
+# sync movies
+GET: http://localhost:8080/api/movies/sync
+
 # add movie
 POST: http://localhost:8080/api/tmdb/movies
 --header 'Authorization: ••••••'
@@ -120,6 +118,14 @@ GET: http://localhost:8080/api/movies
 # get movie
 GET: http://localhost:8080/api/movies/{movieId}
 
+# add movie to my watch list
+PUT: http://localhost:8080/api/users/{movieId}/watch-list
+--header 'Authorization: ••••••'
+
+# rate movie
+PUT: http://localhost:8080/api/movies/{movieId}/rate
+--header 'Authorization: ••••••'
+
 # update
 PUT: http://localhost:8080/api/movies/{movieId}
 --header 'Authorization: ••••••'
@@ -127,11 +133,4 @@ PUT: http://localhost:8080/api/movies/{movieId}
 # remove movie
 DEL: http://localhost:8080/api/movies/{movieId}
 --header 'Authorization: ••••••'
-
-# rate movie
-PUT: http://localhost:8080/api/movies/{movieId}/rate
---header 'Authorization: ••••••'
-
-# sync movies
-GET: http://localhost:8080/api/movies/sync
 ```

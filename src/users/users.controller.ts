@@ -5,8 +5,6 @@ import {
   Get,
   UseGuards,
   Request,
-  Param,
-  Put,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create.dto';
@@ -23,7 +21,7 @@ import { UserResponseDto } from './dto/response.dto';
 
 @ApiBearerAuth()
 @ApiTags('Users')
-@Controller('users')
+@Controller('users/v1')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -74,15 +72,5 @@ export class UsersController {
   @Get('profile')
   async getProfile(@Request() req) {
     return this.usersService.getProfile(req.user.userId);
-  }
-
-  @ApiOperation({
-    summary: 'Allows authenticated users to add a movie to their watchlist.',
-  })
-  @ApiOkResponse({ type: UserResponseDto })
-  @UseGuards(AuthGuard)
-  @Put('/:movieId/watch-list')
-  async rateMovie(@Param('movieId') id: string, @Request() req) {
-    return this.usersService.addToWatchList(id, req.user.userId);
   }
 }

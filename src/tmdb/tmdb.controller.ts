@@ -27,15 +27,35 @@ import { MovieResponseDto } from './dto/movie.response.dto';
 import { UpdateMovieDto } from './dto/update.dto';
 import { Movie } from './schemas/movie.schema';
 import { SyncTmdbService } from './sync.service';
+import { UserResponseDto } from '../users/dto/response.dto';
 
 @ApiBearerAuth()
 @ApiTags('Tmdb')
-@Controller('tmdb')
+@Controller('tmdb/v1')
 export class TmdbController {
   constructor(
     private readonly tmdbService: TmdbService,
     private readonly syncTmdbService: SyncTmdbService,
   ) {}
+
+  @ApiOperation({
+    summary:
+      'This endpoint syncs and updates the MongoDB database with movie data from the TMDB API.',
+  })
+  @ApiOkResponse({
+    description: 'Sync Response',
+    schema: {
+      title: 'SyncMoviesResponse',
+      properties: {
+        message: { type: 'Movies synced successfully!' },
+      },
+    },
+  })
+  @Post('/movies/sync')
+  async sync(): Promise<string> {
+    await this.syncTmdbService.syncMovies();
+    return 'Movies synced successfully!';
+  }
 
   @ApiOperation({
     summary: 'Allows an authenticated user to add a movie to the database.',
@@ -93,7 +113,8 @@ export class TmdbController {
   }
 
   @ApiOperation({
-    summary: 'Allows users to rate a movie (average rating is stored).',
+    summary:
+      'Allows an authenticated user to rate a movie (average rating is stored).',
   })
   @ApiResponse({ type: MovieResponseDto })
   @UseGuards(AuthGuard)
@@ -107,21 +128,12 @@ export class TmdbController {
   }
 
   @ApiOperation({
-    summary:
-      'This endpoint syncs and updates the MongoDB database with movie data from the TMDB API.',
+    summary: 'Allows authenticated users to add a movie to their watchlist.',
   })
-  @ApiOkResponse({
-    description: 'Sync Response',
-    schema: {
-      title: 'SyncMoviesResponse',
-      properties: {
-        message: { type: 'Movies synced successfully!' },
-      },
-    },
-  })
-  @Post('/movies/sync')
-  async sync(): Promise<string> {
-    await this.syncTmdbService.syncMovies();
-    return 'Movies synced successfully!';
+  @ApiOkResponse({ type: UserResponseDto })
+  @UseGuards(AuthGuard)
+  @Put('/movies/:movieId/watch-list')
+  async addMovieToWatchList(@Param('movieId') id: string, @Request() req) {
+    return this.tmdbService.addToWatchList(id, req.user.userId);
   }
 }

@@ -6,7 +6,6 @@ import { TmdbService } from '../tmdb/tmdb.service';
 import { BadRequestException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { User } from './schemas/user.schema';
-import { Movie } from 'src/tmdb/schemas/movie.schema';
 
 describe('UsersService', () => {
   let service: UsersService;
@@ -157,37 +156,6 @@ describe('UsersService', () => {
         .mockRejectedValue(new BadRequestException());
 
       await expect(service.findByUsername('testuser')).rejects.toThrow(
-        BadRequestException,
-      );
-    });
-  });
-
-  describe('addToWatchList', () => {
-    it('should add a movie to the watchlist', async () => {
-      const movie = { _id: '1', title: 'Movie' };
-      const user = {
-        _id: '2',
-        watchList: [],
-        save: jest.fn().mockResolvedValue(true),
-      };
-      jest.spyOn(tmdbService, 'findOneMovie').mockResolvedValue(movie as Movie);
-      jest.spyOn(usersRepository, 'findById').mockResolvedValue(user as any);
-
-      await service.addToWatchList('1', '2');
-
-      expect(tmdbService.findOneMovie).toHaveBeenCalledWith('1');
-      expect(usersRepository.findById).toHaveBeenCalledWith('2');
-      expect(user.watchList).toContain('1');
-      expect(user.save).toHaveBeenCalled();
-    });
-
-    it('should throw an error if movie already in watchlist', async () => {
-      const movie = { _id: '1', title: 'Movie' };
-      const user = { _id: '2', watchList: ['1'], save: jest.fn() };
-      jest.spyOn(tmdbService, 'findOneMovie').mockResolvedValue(movie as Movie);
-      jest.spyOn(usersRepository, 'findById').mockResolvedValue(user as any);
-
-      await expect(service.addToWatchList('1', '2')).rejects.toThrow(
         BadRequestException,
       );
     });
