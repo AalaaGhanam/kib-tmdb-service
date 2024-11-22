@@ -1,6 +1,6 @@
 import { Controller, Get, Request } from '@nestjs/common';
 import { AppService } from './app.service';
-import { ApiOkResponse } from '@nestjs/swagger';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 const PING_RESPONSE = {
   title: 'PingResponse',
@@ -16,10 +16,15 @@ const PING_RESPONSE = {
     },
   },
 };
+
+@ApiTags('Ping')
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
+  @ApiOperation({
+    summary: 'Check service connection.',
+  })
   @ApiOkResponse({
     description: 'Ping Response',
     schema: PING_RESPONSE,

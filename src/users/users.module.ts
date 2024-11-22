@@ -8,7 +8,6 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './jwt.strategy';
 import { ConfigModule } from '@nestjs/config';
 import { UsersRepository } from './users.repository';
-import { TmdbService } from '../tmdb/tmdb.service';
 import { Movie, MovieSchema } from 'src/tmdb/schemas/movie.schema';
 import { RedisModule } from 'src/redis/redis.module';
 
@@ -26,7 +25,7 @@ import { RedisModule } from 'src/redis/redis.module';
     RedisModule,
   ],
   controllers: [UsersController],
-  providers: [UsersService, JwtStrategy, UsersRepository, TmdbService],
+  providers: [UsersService, JwtStrategy, UsersRepository],
   exports: [UsersService, UsersRepository],
 })
 export class UsersModule {}

@@ -12,12 +12,15 @@ import { RateMovieDto } from './dto/rate.dto';
 import { RedisService } from '../redis/redis.service';
 import { REDIS_EXPIRE_TIME } from '../config/redis.config';
 import { UpdateMovieDto } from './dto/update.dto';
+import { UsersRepository } from '../users/users.repository';
+import { User } from '../users/schemas/user.schema';
 
 @Injectable()
 export class TmdbService {
   constructor(
     @InjectModel(Movie.name) private movieModel: Model<Movie>,
     private redisService: RedisService,
+    private readonly usersRepository: UsersRepository,
   ) {}
 
   async createMovie(createMovieDto: CreateMovieDto): Promise<Movie> {
@@ -114,6 +117,23 @@ export class TmdbService {
     try {
       await this.movieModel.findByIdAndDelete(id);
       return true;
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
+  }
+
+  async addToWatchList(id: string, userId: string): Promise<User> {
+    try {
+      const movie: Movie = await this.findOneMovie(id);
+      const user = await this.usersRepository.findById(userId);
+
+      const existingList = user.watchList.find((movie) => movie === movie);
+      if (!existingList) {
+        user.watchList.push(movie._id as any);
+      } else {
+        throw new BadRequestException('Movie already in your watch list');
+      }
+      return await user.save();
     } catch (error) {
       throw new BadRequestException(error);
     }

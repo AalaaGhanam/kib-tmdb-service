@@ -71,16 +71,15 @@ Kib TMDB service consists of two main controllers (User and TMDB API controllers
 **Register User:** User registration with credentials and storing user data in MongoDB.<br />
 **Login:** Allows the user to login and obtain an access token using JWT.<br />
 **Get My Profile:** Authenticated request to retrieve the user's profile.<br />
-**Add Movie to Watchlist:** Allows authenticated users to add a movie to their watchlist.<br />
-**Rate Movie:** Allows users to rate a movie (average rating is stored).<br /><br />
 2. **TMDB API Controller Endpoints:**<br />
+**Sync Movies:** This endpoint syncs and updates the MongoDB database with movie data from the TMDB API.<br />
 **Add Movie:** Allows an authenticated user to add a movie to the database.<br />
 **List All Movies:** Allows user to list all movies from the database.<br />
 **Get Movie:** Allows user to get movie by Id from the database.<br />
 **Update Movie:** Allows an authenticated user to update the movie details.<br />
 **Delete Movie:** Allows an authenticated user to delete a movie from the database.<br />
+**Add Movie to Watchlist:** Allows authenticated users to add a movie to their watchlist.<br />
 **Rate Movie:** Allows users to rate a movie (average rating is stored).<br />
-**Sync Movies:** This endpoint syncs and updates the MongoDB database with movie data from the TMDB API.<br />
 
 #### Ping 
 
@@ -101,15 +100,14 @@ POST: http://localhost:8080/api/users/login
 # get user profile
 GET: http://localhost:8080/api/users/profile
 --header 'Authorization: ••••••'
-
-# add movie to my watch list
-PUT: http://localhost:8080/api/users/{movieId}/watch-list
---header 'Authorization: ••••••'
 ```
 
 ### TMDB 
 
 ```sh
+# sync movies
+GET: http://localhost:8080/api/movies/sync
+
 # add movie
 POST: http://localhost:8080/api/tmdb/movies
 --header 'Authorization: ••••••'
@@ -120,6 +118,14 @@ GET: http://localhost:8080/api/movies
 # get movie
 GET: http://localhost:8080/api/movies/{movieId}
 
+# add movie to my watch list
+PUT: http://localhost:8080/api/users/{movieId}/watch-list
+--header 'Authorization: ••••••'
+
+# rate movie
+PUT: http://localhost:8080/api/movies/{movieId}/rate
+--header 'Authorization: ••••••'
+
 # update
 PUT: http://localhost:8080/api/movies/{movieId}
 --header 'Authorization: ••••••'
@@ -127,11 +133,4 @@ PUT: http://localhost:8080/api/movies/{movieId}
 # remove movie
 DEL: http://localhost:8080/api/movies/{movieId}
 --header 'Authorization: ••••••'
-
-# rate movie
-PUT: http://localhost:8080/api/movies/{movieId}/rate
---header 'Authorization: ••••••'
-
-# sync movies
-GET: http://localhost:8080/api/movies/sync
 ```

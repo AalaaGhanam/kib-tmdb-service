@@ -27,6 +27,7 @@ import { MovieResponseDto } from './dto/movie.response.dto';
 import { UpdateMovieDto } from './dto/update.dto';
 import { Movie } from './schemas/movie.schema';
 import { SyncTmdbService } from './sync.service';
+import { UserResponseDto } from '../users/dto/response.dto';
 
 @ApiBearerAuth()
 @ApiTags('Tmdb')
@@ -112,7 +113,8 @@ export class TmdbController {
   }
 
   @ApiOperation({
-    summary: 'Allows an authenticated user to rate a movie (average rating is stored).',
+    summary:
+      'Allows an authenticated user to rate a movie (average rating is stored).',
   })
   @ApiResponse({ type: MovieResponseDto })
   @UseGuards(AuthGuard)
@@ -123,5 +125,15 @@ export class TmdbController {
     @Request() req,
   ): Promise<Movie> {
     return this.tmdbService.rateMovie(id, rateMovieDto, req.user.userId);
+  }
+
+  @ApiOperation({
+    summary: 'Allows authenticated users to add a movie to their watchlist.',
+  })
+  @ApiOkResponse({ type: UserResponseDto })
+  @UseGuards(AuthGuard)
+  @Put('/movies/:movieId/watch-list')
+  async addMovieToWatchList(@Param('movieId') id: string, @Request() req) {
+    return this.tmdbService.addToWatchList(id, req.user.userId);
   }
 }

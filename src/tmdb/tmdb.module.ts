@@ -8,6 +8,7 @@ import { User, UserSchema } from 'src/users/schemas/user.schema';
 import { JwtService } from '@nestjs/jwt';
 import { RedisModule } from 'src/redis/redis.module';
 import { SyncTmdbService } from './sync.service';
+import { UsersRepository } from 'src/users/users.repository';
 
 @Module({
   imports: [
@@ -16,6 +17,12 @@ import { SyncTmdbService } from './sync.service';
     RedisModule,
   ],
   controllers: [TmdbController],
-  providers: [TmdbService, JwtStrategy, JwtService, SyncTmdbService],
+  providers: [
+    TmdbService,
+    JwtStrategy,
+    JwtService,
+    SyncTmdbService,
+    UsersRepository,
+  ],
 })
 export class TmdbModule {}
