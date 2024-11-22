@@ -31,7 +31,7 @@ import { UserResponseDto } from '../users/dto/response.dto';
 
 @ApiBearerAuth()
 @ApiTags('Tmdb')
-@Controller('tmdb/v1')
+@Controller('v1/tmdb')
 export class TmdbController {
   constructor(
     private readonly tmdbService: TmdbService,

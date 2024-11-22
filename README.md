@@ -92,13 +92,13 @@ GET: http://localhost:8080/api/ping
 
 ```sh
 # register new user
-POST: http://localhost:8080/api/users/register
+POST: http://localhost:8080/api/v1/users/register
 
 # login and get the token to be able to use the service endpoints
-POST: http://localhost:8080/api/users/login
+POST: http://localhost:8080/api/v1/users/login
 
 # get user profile
-GET: http://localhost:8080/api/users/profile
+GET: http://localhost:8080/api/v1/users/profile
 --header 'Authorization: ••••••'
 ```
 
@@ -106,31 +106,31 @@ GET: http://localhost:8080/api/users/profile
 
 ```sh
 # sync movies
-GET: http://localhost:8080/api/movies/sync
+GET: http://localhost:8080/api/v1/tmdb/movies/sync
 
 # add movie
-POST: http://localhost:8080/api/tmdb/movies
+POST: http://localhost:8080/api/v1/tmdb/movies
 --header 'Authorization: ••••••'
 
 # list all movies
-GET: http://localhost:8080/api/movies
+GET: http://localhost:8080/api/v1/tmdb/movies
 
 # get movie
-GET: http://localhost:8080/api/movies/{movieId}
+GET: http://localhost:8080/api/v1/tmdb/movies/{movieId}
 
 # add movie to my watch list
-PUT: http://localhost:8080/api/users/{movieId}/watch-list
+PUT: http://localhost:8080/api/v1/tmdb/movies/{movieId}/watch-list
 --header 'Authorization: ••••••'
 
 # rate movie
-PUT: http://localhost:8080/api/movies/{movieId}/rate
+PUT: http://localhost:8080/api/v1/tmdb/movies/{movieId}/rate
 --header 'Authorization: ••••••'
 
 # update
-PUT: http://localhost:8080/api/movies/{movieId}
+PUT: http://localhost:8080/api/v1/tmdb/movies/{movieId}
 --header 'Authorization: ••••••'
 
 # remove movie
-DEL: http://localhost:8080/api/movies/{movieId}
+DEL: http://localhost:8080/api/v1/tmdb/movies/{movieId}
 --header 'Authorization: ••••••'
 ```

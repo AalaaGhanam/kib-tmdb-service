@@ -62,8 +62,8 @@ describe('SyncTmdbService', () => {
         { id: '3', name: 'Drama' },
       ];
 
-      axiosMock.get.mockResolvedValueOnce({ data: { results: mockMovies } }); // Mock popular movies response
-      axiosMock.get.mockResolvedValueOnce({ data: { genres: mockGenres } }); // Mock genres response
+      axiosMock.get.mockResolvedValueOnce({ data: { results: mockMovies } });
+      axiosMock.get.mockResolvedValueOnce({ data: { genres: mockGenres } });
       movieModelMock.findOne
         .mockResolvedValueOnce(null)
         .mockResolvedValueOnce(null);
